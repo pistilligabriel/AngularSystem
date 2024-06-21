@@ -1,0 +1,17 @@
+<!-- FILEPATH: /D:/Angular/mini-system/src/app/modules/login/login.component.html -->
+
+<!-- Tela de login -->
+<div class="login-container">
+  <h2>Login</h2>
+  <form class="login-form" [formGroup]="loginForm" (ngSubmit)="userLogin()">
+    <div class="form-group">
+      <input type="text" [(ngModel)]="usuarioLogin.login" pInputText placeholder="Nome" formControlName = "login"/>
+    </div>
+    <div class="form-group">
+      <input type="password" [(ngModel)]="usuarioLogin.password" pInputText placeholder="Senha" formControlName = "password"/>
+    </div>
+    <button type="submit" class="btn btn-primary" [disabled]="!this.loginForm.valid">Entrar</button>
+  </form>
+</div>
+
+<app-footer></app-footer>

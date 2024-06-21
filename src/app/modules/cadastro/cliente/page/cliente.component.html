@@ -1,0 +1,300 @@
+<div class="card flex justify-content-center gap-2">
+  <p-toast></p-toast>
+  <p-confirmDialog header="Título do Diálogo" icon="pi pi-exclamation-triangle" [acceptLabel]="'OK'" [rejectVisible]="false" [closable]="false"></p-confirmDialog>
+</div>
+
+<app-toolbar-navigation></app-toolbar-navigation>
+
+<div>
+  <div class="grid">
+    <div class="col-12">
+      <p-card
+        header="Clientes"
+        styleClass="shadow-3 m-1 text-indigo-800"
+      >
+
+<!--TABELA DE USUARIOS-->
+<div *ngIf="!showForm" class="grid">
+  <div class="col-12">
+    <div class="flex justify-content-end">
+    </div>
+      <p-table
+        #tabelaCliente
+        [columns]="colunasSelecionadas"
+        [value]="clienteDatas"
+        [(selection)]="clienteSelecionado"
+        (onRowSelect)="onRowSelect($event)"
+        selectionMode="multiple"
+        [rows]="5"
+        [paginator]="true"
+        [responsive]="true"
+        [resizableColumns]="true"
+        columnResizeMode="expand"
+        styleClass="p-datatable-gridlines"
+        [tableStyle]="{ 'min-width': '50rem' }"
+        [rowHover]="true"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
+        [globalFilterFields]="['CODIGO', 'status', 'empresa', 'nome', 'sobrenome', 'estado', 'cidade']"
+        [exportHeader]="'customExportHeader'"
+        dataKey="CODIGO"
+        currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
+        [filterDelay]="0"
+      >
+
+      <ng-template pTemplate="caption">
+        <div class="flex">
+
+          <div class="mr-5">
+            <button type="button" class="mr-2" pButton pRipple icon="pi pi-plus" pTooltip="Adicionar Cliente" (click)="onAddButtonClick()">Adicionar</button>
+            <button pButton pRipple icon="pi pi-ban" class="p-button-danger" (click)="disableSelectedClientes()" [disabled]="!clienteSelecionado || !clienteSelecionado.length"></button>
+          </div>
+
+
+          <div class="flex justify-content-center mr-5">
+          <button type="button" pButton pRipple icon="pi pi-file" (click)="tabelaCliente?.exportCSV()" class="mr-2" pTooltip="CSV - Exportar os dados da tabela com formato csv." tooltipPosition="bottom"></button>
+          <button type="button" pButton pRipple icon="pi pi-file-excel" (click)="exportExcel()" class="p-button-success mr-2" pTooltip="XLS - Exportar os dados da tabela com formato xls." tooltipPosition="bottom"></button>
+          <button type="button" pButton pRipple icon="pi pi-file-pdf" (click)="exportPdf()" class="p-button-warning mr-2" pTooltip="PDF - Exportar os dados da tabela com formato pdf." tooltipPosition="bottom"></button>
+          </div>
+
+
+          <p-multiSelect
+            pTooltip="Desmarque as colunas que serão ocultadas"
+            [options]="cols"
+            [(ngModel)]="colunasSelecionadas"
+            optionLabel="header"
+            selectedItemsLabel="Ocultar Colunas"
+            [style]="{'min-width': '200px'}"
+            placeholder="Selecione as Colunas">
+          </p-multiSelect>
+
+          <span class="p-input-icon-left ml-auto mr-2">
+            <i class="pi pi-search"></i>
+            <input pInputText type="text" [(ngModel)]="valorPesquisa" (input)="applyFilterGlobal($event, 'contains')" placeholder="Pesquisar" />
+          </span>
+          <button pButton label="Limpar"  class="p-button-outlined" icon="pi pi-filter-slash" (click)="clear(tabelaCliente)"></button>
+
+        </div>
+
+      </ng-template>
+
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th style="width: 3rem">
+            </th>
+            <th style="width: 4rem">
+              <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+            </th>
+            <th *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field">
+              <div class="flex justify-content-between align-items-center">
+                <div class="flex justify-content-between align-items-center">
+                  {{col.header}}
+                </div>
+                <div class="flex justify-content-between align-items-center">
+                  <p-sortIcon field="{{col.field}}"></p-sortIcon>
+                  <p-columnFilter
+                    type="text"
+                    [field]="col.field"
+                    display="menu"
+                    matchMode="contains"
+                    [showMatchModes]="true"
+                    [showOperator]="false"
+                    [showAddButton]="true"
+                  ></p-columnFilter>
+                </div>
+              </div>
+            </th>
+
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-cliente let-columns="columns">
+          <tr>
+            <td>
+              <div class="flex justify-content-center gap-2 align-content-center align-items-center">
+                <button pButton pRipple class="p-button-rounded p-button-text" icon="pi pi-pencil" pTooltip="Editar Usuário" (click)="onEditButtonClick(cliente)"></button>
+                <button pButton pRipple class="p-button-rounded p-button-text p-button-danger" icon="pi pi-ban" pTooltip="Desativar Usuário" (click)="onDisableButtonClick(cliente)"></button>
+              </div>
+            </td>
+            <td>
+              <p-tableCheckbox [value]="cliente"></p-tableCheckbox>
+            </td>
+            <td>{{ cliente.CODIGO }}</td>
+            <ng-container *ngFor="let col of columns">
+              <td *ngIf="col.field !== 'status'; else statusColumn">
+                {{ cliente[col.field] }}
+              </td>
+              <ng-template #statusColumn>
+                <td>
+                  <p-tag [value]="cliente.status" [severity]="getSeverity(cliente.status)"></p-tag>
+                </td>
+              </ng-template>
+            </ng-container>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="summary">
+          <div class="flex align-items-center justify-content-between">Total de {{ clienteDatas ? clienteDatas.length : 0 }} Clientes Cadastrados.</div>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+              <td colspan="8">Nenhum informação foi encontrada.</td>
+          </tr>
+        </ng-template>
+
+
+      </p-table>
+
+  </div>
+</div>
+
+
+
+
+<!--FORMULARIO DE CLIENTES-->
+<div *ngIf="showForm" class="mt-2">
+  <div class="gap-4">
+    <form [formGroup]="clienteForm" (ngSubmit)="adicionarOuEditarCliente()">
+    <div class="card flex flex-column md:flex-column gap-4">
+
+      <p-tabView>
+        <p-tabPanel header="Dados Cadastrais">
+      <div class="flex flex-row">
+        <div class="flex flex-column mr-2">
+          <label for="label">Status</label>
+          <input pInputText formControlName="status"/>
+        </div>
+
+
+        <div class="flex flex-column mr-2">
+          <label for="label">Empresa</label>
+          <input pInputText formControlName="empresa"/>
+        </div>
+
+        <div class="flex flex-column mr-2">
+          <label for="label">Versão</label>
+          <input pInputText type="text" formControlName="versao" />
+        </div>
+      </div>
+
+        <!-- <p-overlayPanel #opFuncionario>
+          Campo deve ser selecionado o funcionario que vai ter acesso ao sistema.
+        </p-overlayPanel>
+        <p-button icon="pi pi-bookmark" [rounded]="true" [text]="true" severity="help " (click)="opFuncionario.toggle($event)"></p-button>
+        <span class="p-float-label flex flex-column mr-4">
+          <input pInputText formControlName="funcionario" />
+          <label for="float-label">Funcionario</label>
+        </span> -->
+
+        <!-- <p-overlayPanel #opLogin>
+          Campo deve ser preenchido o nome de usuario para acesso ao sistema.
+        </p-overlayPanel>
+        <p-button icon="pi pi-bookmark" [rounded]="true" [text]="true" severity="help " (click)="opLogin.toggle($event)"></p-button> -->
+        <br><br>
+        <div class="p-float-label flex flex-column mr-4">
+          <input pInputText formControlName="nome"  style="width: 500px;"/>
+          <label for="float-label">Nome</label>
+        </div>
+        <!-- <p-overlayPanel #opPassword>
+          Campo deve ser preenchido s senha e deve ter no minimo 6 caracteres.
+        </p-overlayPanel>
+        <p-button icon="pi pi-bookmark" [rounded]="true" [text]="true" severity="help " (click)="opPassword.toggle($event)"></p-button> -->
+        <br><br>
+        <div class="p-float-label flex flex-column mr-4">
+          <input pInputText type="text" formControlName="sobrenome" style="width: 500px;"/>
+          <label for="float-label">Sobrenome</label>
+        </div>
+        <br><br>
+        <div class="flex flex-row mr-4">
+          <div class="p-float-label flex flex-column mr-2">
+          <p-inputMask mask="(99)99999-9999" type="phone" formControlName="telefone" />
+          <label for="float-label">Telefone</label>
+          </div>
+
+          <div class="p-float-label flex flex-column mr-2">
+          <input pInputText type="email" formControlName="email" style="width: 250px;" />
+          <label for="float-label">E-mail</label>
+          </div>
+        </div>
+
+        <br><br>
+        <div class="flex flex-row mr-4">
+          <div class="p-float-label flex flex-column mr-2">
+          <p-dropdown
+          [(ngModel)]="tipoDocumentoSelecionado"
+          formControlName="tipoDocumento"
+          [options]="tipoDocumento"
+          optionLabel="value"
+          />
+          <label for="p-float-label">Tipo Doc.</label>
+        </div>
+
+          <div class="p-float-label flex flex-column mr-2">
+            <p-inputMask type="text" *ngIf="tipoDocumentoSelecionado?.value === 'CPF'"
+            mask="999.999.999-99"
+            formControlName="documento"/>
+
+
+            <p-inputMask type="text" *ngIf="tipoDocumentoSelecionado?.value === 'CNPJ'"
+            mask="99.999.999/9999-99"
+            formControlName="documento"/>
+            <label *ngIf="tipoDocumentoSelecionado" for="float-label">Documento</label>
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <p-tabPanel header="Endereço">
+        <br>
+          <div class="p-float-label flex flex-column mr-2">
+            <p-inputMask type="text" mask="99.999-999" formControlName="cep" />
+            <label for="float-label">CEP</label>
+          </div>
+          <br><br>
+        <div class="flex flex-row">
+          <div class="p-float-label flex flex-column mr-2">
+            <input pInputText formControlName="municipio" />
+            <label for="float-label">Cidade</label>
+          </div>
+          <div class="p-float-label flex flex-column mr-2">
+            <input pInputText formControlName="estado" />
+            <label for="float-label">Estado</label>
+          </div>
+          </div>
+          <br><br>
+          <div class="p-float-label flex flex-column mr-2">
+            <input pInputText formControlName="logradouro" style="width: 500px;"/>
+            <label for="float-label">Logradouro</label>
+          </div>
+          <br><br>
+          <div class="p-float-label flex flex-column mr-2">
+            <input pInputText formControlName="bairro" style="width: 500px;" />
+            <label for="float-label">Bairro</label>
+          </div>
+          <br><br>
+
+          <div class="p-float-label flex flex-column mr-2">
+            <p-inputNumber formControlName="numero" />
+            <label for="float-label">Número</label>
+          </div>
+          <br><br>
+          <div class="p-float-label flex flex-column mr-2">
+            <input pInputText formControlName="complemento" style="width: 500px;"/>
+            <label for="float-label">Complemento</label>
+          </div>
+
+      </p-tabPanel>
+      </p-tabView>
+      </div>
+    </form>
+
+
+
+      <div class="mt-2">
+        <div class="card flex flex-column md:flex-column gap-4">
+          <div class="flex flex-row justify-content-left align-content-center align-itens-center m-1">
+            <p-button class="mr-2" [disabled]="!clienteForm.valid" type="submit" (onClick)="adicionarOuEditarCliente()" label="Confirmar"></p-button>
+            <p-button type="submit" label="Cancelar" styleClass="red-button" (onClick)="cancelarFormulario()"></p-button>
+          </div>
+        </div>
+</div>
