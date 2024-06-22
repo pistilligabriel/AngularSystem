@@ -8,7 +8,7 @@ import { PrimeNGConfig } from 'primeng/api';
 })
 export class AppComponent implements OnInit {
 
-  title = 'Minisys';
+  title = 'Angular-System';
 
   constructor(private primeNgConfig: PrimeNGConfig) {}
 
