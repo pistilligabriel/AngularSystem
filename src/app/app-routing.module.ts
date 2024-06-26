@@ -37,14 +37,14 @@ const routes: Routes = [
       ),
     canActivate: [AuthGuardService],
   },
-  // {
-  //   path: 'registration-product',
-  //   loadChildren: () =>
-  //     import('./modules/registration/product/registration-product.module').then(
-  //       (m) => m.RegistrationProductModule
-  //     ),
-  //   canActivate: [AuthGuardService],
-  // },
+  {
+    path: 'produto',
+    loadChildren: () =>
+      import('./modules/cadastro/produto/produto.module').then(
+        (m) => m.ProdutoModule
+      ),
+    canActivate: [AuthGuardService],
+  },
   // {
   //   path: 'registration-unitMeasure',
   //   loadChildren: () =>
@@ -61,14 +61,14 @@ const routes: Routes = [
   //     ).then((m) => m.RegistrationGroupMemberModule),
   //   canActivate: [AuthGuardService],
   // },
-  // {
-  //   path: 'registration/group/product',
-  //   loadChildren: () =>
-  //     import(
-  //       './modules/registration/group/product/registration-group-product.module'
-  //     ).then((m) => m.RegistrationGroupProductModule),
-  //   canActivate: [AuthGuardService],
-  // },
+  {
+    path: 'grupo-produto',
+    loadChildren: () =>
+      import(
+        './modules/cadastro/grupo-produto/grupo-produto.module'
+      ).then((m) => m.GrupoProdutoModule),
+    canActivate: [AuthGuardService],
+  },
   // {
   //   path: 'registration/group/user',
   //   loadChildren: () =>

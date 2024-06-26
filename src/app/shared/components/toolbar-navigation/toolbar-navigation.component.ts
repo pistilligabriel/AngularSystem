@@ -38,7 +38,7 @@ export class ToolbarNavigationComponent implements OnInit {
           },
           {
             label: 'Produto',
-            routerLink: ['/registration-product'],
+            routerLink: ['/produto'],
           },
           {
             label: 'Unidade de Medida',
@@ -53,7 +53,7 @@ export class ToolbarNavigationComponent implements OnInit {
               },
               {
                 label: 'Produto',
-                routerLink: ['/registration/group/product'],
+                routerLink: ['/grupo-produto'],
               },
               {
                 label: 'Usuário',
