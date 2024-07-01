@@ -18,12 +18,26 @@ export interface UnidadeMedida {
   versao: string;
 }
 
+export interface AdicionarUnidadeMedida {
+  descricao:string;
+  sigla:string;
+  empresa: number;
+}
+
+export interface EditarUnidadeMedida {
+  CODIGO: bigint;
+  descricao:string;
+  sigla:string;
+  status: string;
+  empresa: number;
+}
+
 @Component({
   selector: 'app-unidade-medida',
   templateUrl: './unidade-medida.component.html',
   styleUrls: []
 })
-export class UnidadeMedidaComponent implements OnInit {
+export class UnidadeMedidaComponent implements OnInit, OnDestroy {
   public readonly destroy$:Subject<void> = new Subject<void>;
 
   @ViewChild('tabelaUnidadeMedida') tabelaUnidadeMedida: Table | undefined;
@@ -77,15 +91,12 @@ export class UnidadeMedidaComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.listarUnidades();
+    this.listarUnidadeMedidas();
 
     this.cols = [
       { field: 'status', header: 'Status' },
       { field: 'descricao', header: 'Descricao'},
-      { field: 'grupoProduto', header: 'Grupo Produto' },
-      { field: 'marca', header: 'Marca' },
-      { field: 'unidadeVenda', header: 'Unidade Venda' },
-      { field: 'quantidadeEstoque', header: 'Quantidade Estoque' },
+      { field: 'sigla', header: 'Sigla' }
   ];
 
   this.colunasSelecionadas = this.cols;
@@ -177,7 +188,7 @@ export class UnidadeMedidaComponent implements OnInit {
    * @returns {boolean} - Verdadeiro se estiver em modo de edição, falso caso contrário.
    */
   isEdicao(): boolean {
-    console.log('Editar produto:', this.unidadeForm.value.CODIGO)
+    console.log('Editar unidade medida:', this.unidadeForm.value.CODIGO)
     return !!this.unidadeForm.value.CODIGO;
   }
 
@@ -230,13 +241,13 @@ export class UnidadeMedidaComponent implements OnInit {
 
   desativarUnidadesSelecionadas() {
     this.confirmationService.confirm({
-      message: 'Tem certeza de que deseja desativar os produtos selecionados?',
+      message: 'Tem certeza de que deseja desativar as unidades de medida selecionadas?',
       header: 'Confirmar',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.unidadeDatas = this.unidadeDatas.filter((val) => !this.unidadeSelecionada?.includes(val));
         this.unidadeSelecionada = null;
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Unidade de Medida Desativadas', life: 3000 });
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Unidades de Medida Desativadas', life: 3000 });
       }
     });
   }
@@ -250,7 +261,7 @@ export class UnidadeMedidaComponent implements OnInit {
   }
 
 
-  carregarUnidadeEspecifico(CODIGO: bigint){
+  carregarUnidadeEspecifica(CODIGO: bigint){
     this.unidadeService.getProdutoEspecifico(CODIGO).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         if (response) {
@@ -268,9 +279,9 @@ export class UnidadeMedidaComponent implements OnInit {
   }
 
   /**
-   * Lista os produtos chamando o serviço correspondente.
+   * Lista as unidades de medida chamando o serviço correspondente.
    */
-  listarUnidadeMedidas() {
+  listarUnidadesMedida() {
     this.unidadeService
       .getAllProdutos()
       .pipe(takeUntil(this.destroy$))
@@ -295,39 +306,30 @@ export class UnidadeMedidaComponent implements OnInit {
 
   
   /**
-   * Adiciona ou edita um produto com base no estado do formulário.
+   * Adiciona ou edita uma unidade medida com base no estado do formulário.
    */
-  adicionarOuEditarUnidade(): void {
+  adicionarOuEditarUnidadeMedida(): void {
     if (this.isEdicao()) {
-      this.editarUnidade();
+      this.editarUnidadeMedida();
     } else {
-      this.adicionarUnidade();
+      this.adicionarUnidadeMedida();
     }
   }
 
 
   /**
-   * Adiciona um novo produto.
+   * Adiciona uma nova unidade medida.
    */
-  adicionarUnidade(): void {
+  adicionarUnidadeMedida(): void {
     if (this.unidadeForm.valid) {
-      const requestCreateproduto: AdicionarProduto = {
-        descricao: this.produtoForm.value.descricao as string,
-        observacao: this.produtoForm.value.observacao as string,
-        grupoProduto:this.produtoForm.value.grupoProduto as bigint,
-        marca: this.produtoForm.value.marca as string,
-        codigoOriginal: this.produtoForm.value.codigoOriginal as string,
-        codigoBarras: this.produtoForm.value.codigoBarras as string,
-        unidadeVenda: this.produtoForm.value.unidadeVenda as string,
-        custo: this.produtoForm.value.custo as number,
-        quantidade: this.produtoForm.value.quantidade as number,
-        valor: this.produtoForm.value.valor as number,
-        margemLucro: this.produtoForm.getRawValue().margemLucro as number,
-        empresa: this.produtoForm.getRawValue().empresa as number,
+      const requestCreateUnidadeMedida: AdicionarUnidadeMedida = {
+        descricao: this.unidadeForm.value.descricao as string,
+        sigla:this.unidadeForm.value.sigla as string,
+        empresa: this.unidadeForm.getRawValue().empresa as number,
       };
 
       this.unidadeService
-        .adicionarUnidade(requestCreateUnidade)
+        .adicionarUnidadeMedida(requestCreateUnidadeMedida)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -375,26 +377,17 @@ export class UnidadeMedidaComponent implements OnInit {
    */
   editarUnidadeMedida(): void {
     if (this.unidadeForm?.valid) {
-      const requestEditProduto: EditarProduto = {
-        CODIGO: this.produtoForm.value.CODIGO as bigint,
-        descricao: this.produtoForm.value.descricao as string,
-        observacao: this.produtoForm.value.observacao as string,
-        grupoProduto: this.produtoForm.value.grupoProduto as bigint,
-        marca: this.produtoForm.value.marca as string,
-        codigoOriginal: this.produtoForm.value.codigoOriginal as string,
-        codigoBarras: this.produtoForm.value.codigoBarras as string,
-        unidadeVenda: this.produtoForm.value.unidadeVenda as string,
-        custo: this.produtoForm.value.custo as number,
-        quantidade: this.produtoForm.value.quantidade as number,
-        valor: this.produtoForm.value.valor as number,
-        margemLucro: this.produtoForm.getRawValue().margemLucro as number,
-        status: this.produtoForm.value.status as string,
-        empresa: this.produtoForm.getRawValue().empresa as number,
+      const requestEditUnidadeMedida: EditarUnidadeMedida = {
+        CODIGO: this.unidadeForm.value.CODIGO as bigint,
+        descricao: this.unidadeForm.value.descricao as string,
+        sigla:this.unidadeForm.value.sigla as string,
+        status: this.unidadeForm.value.status as string,
+        empresa: this.unidadeForm.getRawValue().empresa as number,
       };
-      console.log(requestEditProduto)
+      console.log(requestEditUnidadeMedida)
       // Chamar o serviço para editar a unidade de medida
       this.unidadeService
-        .editarProduto(requestEditProduto)
+        .editarProduto(requestEditUnidadeMedida)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -432,5 +425,9 @@ export class UnidadeMedidaComponent implements OnInit {
     }
   }
 
+  OnDestroy(){
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
 }
