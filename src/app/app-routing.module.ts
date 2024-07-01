@@ -45,14 +45,14 @@ const routes: Routes = [
       ),
     canActivate: [AuthGuardService],
   },
-  // {
-  //   path: 'registration-unitMeasure',
-  //   loadChildren: () =>
-  //     import(
-  //       './modules/registration/unitMeasure/registration-unitMeasure.module'
-  //     ).then((m) => m.RegistrationUnitMeasureModule),
-  //   canActivate: [AuthGuardService],
-  // },
+  {
+    path: 'unidade-medida',
+    loadChildren: () =>
+      import(
+        './modules/cadastro/unidade-medida/unidade-medida.module'
+      ).then((m) => m.UnidadeMedidaModule),
+    canActivate: [AuthGuardService],
+  },
   // {
   //   path: 'registration/group/member',
   //   loadChildren: () =>

@@ -42,7 +42,7 @@ export class ToolbarNavigationComponent implements OnInit {
           },
           {
             label: 'Unidade de Medida',
-            routerLink: ['/registration-unitMeasure'],
+            routerLink: ['/unidade-medida'],
           },
           {
             label: 'Grupo',

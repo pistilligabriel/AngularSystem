@@ -15,7 +15,6 @@
   <div class="grid">
     <div class="col-12">
       <p-card header="Unidade Medida" styleClass="shadow-3 m-1 text-indigo-800">
-        
         <!--TABELA DE UNIDADE MEDIDA-->
         <div *ngIf="!showForm" class="grid">
           <div class="col-12">
@@ -37,12 +36,7 @@
               [rowHover]="true"
               [showCurrentPageReport]="true"
               [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
-              [globalFilterFields]="[
-                'CODIGO',
-                'status',
-                'descricao',
-                'sigla'
-              ]"
+              [globalFilterFields]="['CODIGO', 'status', 'descricao', 'sigla']"
               [exportHeader]="'customExportHeader'"
               dataKey="CODIGO"
               currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
@@ -67,7 +61,7 @@
                       pRipple
                       icon="pi pi-ban"
                       class="p-button-danger"
-                      (click)="desativarProdutosSelecionados()"
+                      (click)="desativarUnidadesSelecionadas()"
                       [disabled]="
                         !unidadeSelecionada || !unidadeSelecionada.length
                       "
@@ -251,8 +245,8 @@
 
               <ng-template pTemplate="summary">
                 <div class="flex align-items-center justify-content-between">
-                  Total de {{ unidadeDatas ? unidadeDatas.length : 0 }} Unidade de Medida
-                  Cadastradas.
+                  Total de {{ unidadeDatas ? unidadeDatas.length : 0 }} Unidade
+                  de Medida Cadastradas.
                 </div>
               </ng-template>
 
@@ -264,3 +258,77 @@
             </p-table>
           </div>
         </div>
+
+        <!-- FORMULARIO UNIDADE MEDIDA -->
+
+        <div *ngIf="showForm" class="mt-2">
+          <div class="gap-4">
+            <form
+              [formGroup]="unidadeForm"
+              (ngSubmit)="adicionarOuEditarUnidadeMedida()"
+            >
+              <div class="card flex flex-column md:flex-column gap-4">
+                <div class="flex flex-row">
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Status</label>
+                    <input pInputText formControlName="status" />
+                  </div>
+
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Empresa</label>
+                    <input pInputText formControlName="empresa" />
+                  </div>
+
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Versão</label>
+                    <input pInputText type="text" formControlName="versao" />
+                  </div>
+                </div>
+                <div class="flex flex-row">
+                  <div class="p-float-label flex mr-4">
+                    <input
+                      pInputText
+                      formControlName="descricao"
+                      style="width: 500px"
+                    />
+                    <label for="float-label">Descrição</label>
+                  </div>
+                  <div class="p-float-label flex flex-column mr-2">
+                    <input
+                      pInputText
+                      type="text"
+                      formControlName="simbolo"
+                      style="width: 230px"
+                    />
+                    <label for="float-label">Sigla</label>
+                  </div>
+                </div>
+              </div>
+            </form>
+
+            <div class="mt-2">
+              <div class="card flex flex-column md:flex-column gap-4">
+                <div
+                  class="flex flex-row justify-content-left align-content-center align-itens-center m-1"
+                >
+                  <p-button
+                    class="mr-2"
+                    (onClick)="adicionarOuEditarUnidadeMedida()"
+                    [disabled]="!unidadeForm.valid"
+                    type="submit"
+                    label="Confirmar"
+                  ></p-button>
+                  <p-button
+                    type="submit"
+                    label="Cancelar"
+                    styleClass="red-button"
+                    (onClick)="cancelarFormulario()"
+                  ></p-button>
+                </div>
+              </div>
+            </div>
+          </div></div
+      ></p-card>
+    </div>
+  </div>
+</div>

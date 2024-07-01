@@ -309,7 +309,20 @@
                     [(ngModel)]="grupoProdutoSelecionado"
                     [style]="{ width: '250px' }"
                     />
-                  <label for="float-label">Grupo Produto</label>
+                    <label for="float-label">Grupo Produto</label>
+                  </div>
+                </div>
+
+                <div class="flex flex-column mr-4">
+                  <div class="p-float-label flex flex-column mr-2">
+                    <p-dropdown
+                    formControlName="unidadeVenda"
+                    [options]="unidadeMedida"
+                    optionLabel="label"
+                    [(ngModel)]="unidadeMedidaSelecionada"
+                    [style]="{ width: '250px' }"
+                    />
+                    <label for="float-label">Unidade Venda</label>
                   </div>
                 </div>
 
@@ -344,9 +357,9 @@
 
                     <div class="p-float-label flex flex-column mr-2">
                       <p-inputNumber
-                      formControlName="quantidade"
-                      inputId="quantidade"/>
-                    <label for="float-label">Quantidade</label>
+                      formControlName="estoque"
+                      inputId="estoque"/>
+                    <label for="float-label">Estoque</label>
                     </div>
 
                     <div class="p-float-label flex flex-column mr-2">

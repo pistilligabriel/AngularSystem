@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
@@ -8,11 +8,12 @@ import { Table } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
+import { UnidadeMedidaService } from 'src/app/services/cadastro/unidade-medida/unidade-medida.service';
 
 export interface UnidadeMedida {
   CODIGO: bigint;
   descricao:string;
-  sigla:string;
+  simbolo:string;
   status: string;
   empresa: number;
   versao: string;
@@ -20,14 +21,14 @@ export interface UnidadeMedida {
 
 export interface AdicionarUnidadeMedida {
   descricao:string;
-  sigla:string;
+  simbolo:string;
   empresa: number;
 }
 
 export interface EditarUnidadeMedida {
   CODIGO: bigint;
   descricao:string;
-  sigla:string;
+  simbolo:string;
   status: string;
   empresa: number;
 }
@@ -45,7 +46,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
   public showForm = false;
 
   public unidadeDatas: Array<UnidadeMedida> = [];
-  
+
   public unidadeSelecionada!: Array<UnidadeMedida> | null;
 
   constructor(
@@ -56,9 +57,10 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
     private confirmationService: ConfirmationService
   ) { }
 
+
   valorPesquisa!: string
 
-  
+
   /**
    * Limpa a seleção da tabela.
    *
@@ -84,19 +86,19 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
   public unidadeForm = this.formularioUnidadeMedida.group({
     CODIGO: [null as bigint | null],
     descricao: ['', [Validators.required]],
-    sigla:['',[Validators.required]],
+    simbolo:['',[Validators.required]],
     status: [{ value: '', disabled: true }],
     empresa: [{ value: 1, disabled: true }],
     versao: [{ value: null as Date | string | null, disabled: true }],
   });
 
   ngOnInit() {
-    this.listarUnidadeMedidas();
+    this.listarUnidadesMedida();
 
     this.cols = [
       { field: 'status', header: 'Status' },
       { field: 'descricao', header: 'Descricao'},
-      { field: 'sigla', header: 'Sigla' }
+      { field: 'simbolo', header: 'Sigla' }
   ];
 
   this.colunasSelecionadas = this.cols;
@@ -201,7 +203,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
     this.unidadeForm.setValue({
       CODIGO: null,
       descricao: null,
-      sigla:null,
+      simbolo:null,
       status: null,
       empresa: 1,
       versao: null
@@ -221,7 +223,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
       this.unidadeForm.patchValue({
         CODIGO: unidade.CODIGO,
         descricao: unidade.descricao,
-        sigla: unidade.sigla,
+        simbolo: unidade.simbolo,
         status: unidade.status,
         empresa: unidade.empresa,
         versao: formattedDate,
@@ -257,18 +259,18 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
   cancelarFormulario() {
     this.unidadeForm.reset();
     this.showForm = false;
-    this.listarUnidadeMedida();
+    this.listarUnidadesMedida();
   }
 
 
   carregarUnidadeEspecifica(CODIGO: bigint){
-    this.unidadeService.getProdutoEspecifico(CODIGO).pipe(takeUntil(this.destroy$)).subscribe({
+    this.unidadeService.getUnidadeMedida(CODIGO).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         if (response) {
           this.unidadeForm.patchValue({
             CODIGO: response.CODIGO,
             descricao: response.descricao,
-            sigla: response.sigla,
+            simbolo: response.simbolo,
             status: response.status,
             empresa: response.empresa,
             versao: response.versao,
@@ -283,7 +285,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
    */
   listarUnidadesMedida() {
     this.unidadeService
-      .getAllProdutos()
+      .getAllUnidadeMedida()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -304,7 +306,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
       });
   }
 
-  
+
   /**
    * Adiciona ou edita uma unidade medida com base no estado do formulário.
    */
@@ -324,7 +326,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
     if (this.unidadeForm.valid) {
       const requestCreateUnidadeMedida: AdicionarUnidadeMedida = {
         descricao: this.unidadeForm.value.descricao as string,
-        sigla:this.unidadeForm.value.sigla as string,
+        simbolo:this.unidadeForm.value.simbolo as string,
         empresa: this.unidadeForm.getRawValue().empresa as number,
       };
 
@@ -348,7 +350,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
             this.showForm = false;
 
             // Recarregar os dados da tabela
-            this.listarUnidadeMedidas();
+            this.listarUnidadesMedida();
           },
           error: (error) => {
             console.error('Erro ao cadastrar unidade de medida:', error);
@@ -380,14 +382,14 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
       const requestEditUnidadeMedida: EditarUnidadeMedida = {
         CODIGO: this.unidadeForm.value.CODIGO as bigint,
         descricao: this.unidadeForm.value.descricao as string,
-        sigla:this.unidadeForm.value.sigla as string,
+        simbolo:this.unidadeForm.value.simbolo as string,
         status: this.unidadeForm.value.status as string,
         empresa: this.unidadeForm.getRawValue().empresa as number,
       };
       console.log(requestEditUnidadeMedida)
       // Chamar o serviço para editar a unidade de medida
       this.unidadeService
-        .editarProduto(requestEditUnidadeMedida)
+        .editarUnidadeMedida(requestEditUnidadeMedida)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -401,7 +403,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
               });
               this.unidadeForm.reset();
               this.showForm = false;
-              this.listarUnidadeMedidas();
+              this.listarUnidadesMedida();
             }
           },
           error: (error) => {
@@ -425,7 +427,41 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
     }
   }
 
-  OnDestroy(){
+  desativarUnidadeMedida(CODIGO:bigint){
+    console.log('Alterar o Status!:', CODIGO)
+    if(CODIGO){
+      this.unidadeService.desativarUnidadeMedida(CODIGO).pipe(takeUntil(this.destroy$)).subscribe({next: (response) => {
+        if(response){
+          console.log('Sucesso ao desativar unidade medida:', response);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: 'Unidade medida desativada com sucesso!',
+            life: 3000,
+          });
+          this.listarUnidadesMedida();
+          }}, error: (error) => {
+            console.error('Erro ao desativar unidade medida:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erro',
+              detail: 'Erro ao desativar unidade medida!',
+              life: 3000,
+            });
+          },
+        })
+        }else{
+          console.warn('Nenhuma unidade de medida selecionada.');
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Atenção',
+            detail: 'Selecione uma unidade de medida!',
+            life: 3000,
+          });
+        }
+  }
+
+  ngOnDestroy(){
     this.destroy$.next();
     this.destroy$.complete();
   }

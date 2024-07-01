@@ -11,6 +11,8 @@ import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
 import { ProdutoService } from 'src/app/services/cadastro/produto/produto.service';
 import { GrupoProduto, GrupoProdutoComponent } from '../grupo-produto/page/grupo-produto.component';
 import { GrupoProdutoService } from 'src/app/services/cadastro/grupo-produto/grupo-produto.service';
+import { UnidadeMedida } from '../unidade-medida/unidade-medida.component';
+import { UnidadeMedidaService } from 'src/app/services/cadastro/unidade-medida/unidade-medida.service';
 
 export interface Produto {
   CODIGO: bigint,
@@ -23,9 +25,12 @@ export interface Produto {
   marca: string,
   codigoOriginal: string,
   codigoBarras: string,
-  unidadeVenda: string,
+  unidadeVenda:{
+    CODIGO:bigint,
+    descricao: string
+  },
   custo:number,
-  quantidade: number,
+  estoque: number,
   valor: number,
   margemLucro:number,
   status: string;
@@ -41,9 +46,9 @@ export interface AdicionarProduto{
   marca: string,
   codigoOriginal: string,
   codigoBarras: string,
-  unidadeVenda: string,
+  unidadeVenda: bigint,
   custo:number,
-  quantidade: number,
+  estoque: number,
   valor: number,
   margemLucro:number,
   empresa: number
@@ -57,9 +62,9 @@ export interface EditarProduto {
   marca: string,
   codigoOriginal: string,
   codigoBarras: string,
-  unidadeVenda: string,
+  unidadeVenda: bigint,
   custo:number,
-  quantidade: number,
+  estoque: number,
   valor: number,
   margemLucro:number,
   empresa: number,
@@ -94,11 +99,16 @@ export class ProdutoComponent implements OnInit, OnDestroy {
 
   public grupoProdutoSelecionado!: GrupoProduto [];
 
+  public unidadeMedidaDatas: Array<UnidadeMedida> = [];
+
+  public unidadeMedidaSelecionada!: UnidadeMedida [];
+
 
 
   constructor(
     private produtoService: ProdutoService,
     private grupoProduto:GrupoProdutoComponent,
+    private unidadeService: UnidadeMedidaService,
     private grupoProdutoService: GrupoProdutoService,
     private messageService: MessageService,
     private router: Router,
@@ -138,9 +148,9 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     marca: ['', [Validators.required]],
     codigoOriginal:[''],
     codigoBarras:[''],
-    unidadeVenda: ['', [Validators.required]],
+    unidadeVenda: [null as bigint | string | null, [Validators.required]],
     custo:[null as number | null, [Validators.required]],
-    quantidade: [null as number | null, [Validators.required]],
+    estoque: [null as number | null, [Validators.required]],
     valor: [null as number | null, [Validators.required]],
     margemLucro:[{ value: 0, disabled: true }],
     status: [{ value: '', disabled: true }],
@@ -164,6 +174,12 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       }));
     });
 
+    this.unidadeService.getAllUnidadeMedida().subscribe(data => {
+      this.unidadeMedida = data.map(unid => ({
+        label:unid.descricao,
+        value:unid.CODIGO
+    }))});
+
     this.cols = [
       { field: 'status', header: 'Status' },
       { field: 'descricao', header: 'Descricao'},
@@ -178,6 +194,9 @@ export class ProdutoComponent implements OnInit, OnDestroy {
 
    //Usado para carregar informações dos grupos de produto no dropdown
    produtoGrupo!: any[]
+
+   //Usado para carregar informações das unidades de medida no dropdown
+   unidadeMedida!: any[]
 
    /**
    * Aplica um filtro global na tabela de grupos de usuários.
@@ -284,7 +303,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       marca: null,
       unidadeVenda: null,
       custo: null,
-      quantidade: null,
+      estoque: null,
       valor: null,
       margemLucro:null,
       status: null,
@@ -314,9 +333,9 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         marca: produto.marca,
         codigoOriginal: produto.codigoOriginal,
         codigoBarras: produto.codigoBarras,
-        unidadeVenda: produto.unidadeVenda,
+        unidadeVenda: produto.unidadeVenda.descricao,
         custo: produto.custo,
-        quantidade: produto.quantidade,
+        estoque: produto.estoque,
         valor: produto.valor,
         margemLucro: produto.margemLucro,
         status: produto.status,
@@ -369,9 +388,9 @@ export class ProdutoComponent implements OnInit, OnDestroy {
             descricao: response.descricao,
             grupoProduto: response.grupoProduto.descricaoGrupo,
             marca: response.marca,
-            unidadeVenda: response.unidadeVenda,
+            unidadeVenda: response.unidadeVenda.descricao,
             custo: response.custo,
-            quantidade: response.quantidade,
+            estoque: response.estoque,
             valor: response.valor,
             margemLucro:response.margemLucro,
             status: response.status,
@@ -435,9 +454,9 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         marca: this.produtoForm.value.marca as string,
         codigoOriginal: this.produtoForm.value.codigoOriginal as string,
         codigoBarras: this.produtoForm.value.codigoBarras as string,
-        unidadeVenda: this.produtoForm.value.unidadeVenda as string,
+        unidadeVenda: JSON.parse(JSON.stringify(this.produtoForm.value.unidadeVenda)).value as bigint,
         custo: this.produtoForm.value.custo as number,
-        quantidade: this.produtoForm.value.quantidade as number,
+        estoque: this.produtoForm.value.estoque as number,
         valor: this.produtoForm.value.valor as number,
         margemLucro: this.produtoForm.getRawValue().margemLucro as number,
         empresa: this.produtoForm.getRawValue().empresa as number,
@@ -448,11 +467,11 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
-            console.log('Sucesso ao cadastrar usuário:', response);
+            console.log('Sucesso ao cadastrar produto:', response);
             this.messageService.add({
               severity: 'success',
               summary: 'Sucesso',
-              detail: 'Usuário criado com sucesso!',
+              detail: 'Produto criado com sucesso!',
               life: 3000,
             });
 
@@ -466,11 +485,11 @@ export class ProdutoComponent implements OnInit, OnDestroy {
             this.listarProdutos();
           },
           error: (error) => {
-            console.error('Erro ao cadastrarusuário:', error);
+            console.error('Erro ao cadastrar produto:', error);
             this.messageService.add({
               severity: 'error',
               summary: 'Erro',
-              detail: 'Erro ao criarusuário!',
+              detail: 'Erro ao criar produto!',
               life: 3000,
             });
           },
@@ -500,14 +519,15 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         marca: this.produtoForm.value.marca as string,
         codigoOriginal: this.produtoForm.value.codigoOriginal as string,
         codigoBarras: this.produtoForm.value.codigoBarras as string,
-        unidadeVenda: this.produtoForm.value.unidadeVenda as string,
+        unidadeVenda: this.produtoForm.value.unidadeVenda as bigint,
         custo: this.produtoForm.value.custo as number,
-        quantidade: this.produtoForm.value.quantidade as number,
+        estoque: this.produtoForm.value.estoque as number,
         valor: this.produtoForm.value.valor as number,
         margemLucro: this.produtoForm.getRawValue().margemLucro as number,
         status: this.produtoForm.value.status as string,
         empresa: this.produtoForm.getRawValue().empresa as number,
       };
+
       console.log(requestEditProduto)
       // Chamar o serviço para editar o produto
       this.produtoService
