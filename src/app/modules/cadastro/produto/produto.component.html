@@ -40,8 +40,7 @@
                 'CODIGO',
                 'status',
                 'descricao',
-                'grupoProduto',
-                'quantidadeEstoque',
+                'estoque',
                 'valor'
               ]"
               [exportHeader]="'customExportHeader'"
@@ -63,7 +62,7 @@
                     >
                       Adicionar
                     </button>
-                    <button
+                    <!-- <button
                       pButton
                       pRipple
                       icon="pi pi-ban"
@@ -72,7 +71,7 @@
                       [disabled]="
                         !produtoSelecionado || !produtoSelecionado.length
                       "
-                    ></button>
+                    ></button> -->
                   </div>
 
                   <div class="flex justify-content-center mr-5">
@@ -141,10 +140,10 @@
 
               <ng-template pTemplate="header" let-columns>
                 <tr>
-                  <th style="width: 3rem"></th>
-                  <th style="width: 4rem">
+                  <th style="width: 3rem">Editar/Desativar</th>
+                  <!-- <th style="width: 4rem">
                     <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-                  </th>
+                  </th> -->
                   <th
                     pResizableColumn
                     pSortableColumn="CODIGO"
@@ -230,9 +229,9 @@
                       ></button>
                     </div>
                   </td>
-                  <td>
+                  <!-- <td>
                     <p-tableCheckbox [value]="produto"></p-tableCheckbox>
-                  </td>
+                  </td> -->
                   <td>{{ produto.CODIGO }}</td>
                   <ng-container *ngFor="let col of columns">
                     <td *ngIf="col.field !== 'status'; else statusColumn">
@@ -251,7 +250,7 @@
               </ng-template>
 
               <ng-template pTemplate="summary">
-                <div class="flex align-items-center justify-content-between">
+                <div class="text-center">
                   Total de {{ produtoDatas ? produtoDatas.length : 0 }} Produtos
                   Cadastrados.
                 </div>
@@ -299,26 +298,13 @@
                   <label for="float-label">Descrição</label>
                 </div>
 
-
                 <div class="flex flex-column mr-4">
                   <div class="p-float-label flex flex-column mr-2">
                     <p-dropdown
-                    formControlName="grupoProduto"
-                    [options]="produtoGrupo"
-                    optionLabel="label"
-                    [(ngModel)]="grupoProdutoSelecionado"
-                    [style]="{ width: '250px' }"
-                    />
-                    <label for="float-label">Grupo Produto</label>
-                  </div>
-                </div>
-
-                <div class="flex flex-column mr-4">
-                  <div class="p-float-label flex flex-column mr-2">
-                    <p-dropdown
+                    optionValue="descricao"
+                    optionLabel="descricao"
                     formControlName="unidadeVenda"
-                    [options]="unidadeMedida"
-                    optionLabel="label"
+                    [options]="unidadeMedidas"
                     [(ngModel)]="unidadeMedidaSelecionada"
                     [style]="{ width: '250px' }"
                     />

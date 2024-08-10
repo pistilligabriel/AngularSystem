@@ -1,3 +1,4 @@
+import { async } from '@angular/core/testing';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -5,30 +6,19 @@ import { format } from 'date-fns';
 import * as FileSaver from 'file-saver';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
-import { Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
 import { ProdutoService } from 'src/app/services/cadastro/produto/produto.service';
-import { GrupoProduto, GrupoProdutoComponent } from '../grupo-produto/page/grupo-produto.component';
-import { GrupoProdutoService } from 'src/app/services/cadastro/grupo-produto/grupo-produto.service';
-import { UnidadeMedida } from '../unidade-medida/unidade-medida.component';
-import { UnidadeMedidaService } from 'src/app/services/cadastro/unidade-medida/unidade-medida.service';
 
 export interface Produto {
   CODIGO: bigint,
   descricao: string,
   observacao:string,
-  grupoProduto:{
-    CODIGO:bigint,
-    descricaoGrupo: string
-  },
   fabricante: string,
   codigoOriginal: string,
   codigoBarras: string,
-  unidadeVenda:{
-    CODIGO:bigint,
-    descricao: string
-  },
+  unidadeVenda?: string,
   precoCusto:number,
   estoque: number,
   precoVenda: number,
@@ -42,11 +32,10 @@ export interface Produto {
 export interface AdicionarProduto{
   descricao: string,
   observacao:string,
-  grupoProduto:bigint | string,
   fabricante: string,
   codigoOriginal: string,
   codigoBarras: string,
-  unidadeVenda: bigint,
+  unidadeVenda: string,
   precoCusto:number,
   estoque: number,
   precoVenda: number,
@@ -58,11 +47,10 @@ export interface EditarProduto {
   CODIGO: bigint,
   descricao: string,
   observacao:string,
-  grupoProduto: bigint | string,
   fabricante: string,
   codigoOriginal: string,
   codigoBarras: string,
-  unidadeVenda: bigint,
+  unidadeVenda: string,
   precoCusto:number,
   estoque: number,
   precoVenda: number,
@@ -93,22 +81,46 @@ export class ProdutoComponent implements OnInit, OnDestroy {
    */
   public produtoDatas: Array<Produto> = [];
 
-  public grupoProdutoDatas: Array<GrupoProduto> = [];
-
   public produtoSelecionado!: Produto [] | null;
 
-  public grupoProdutoSelecionado!: GrupoProduto [];
+  unidadeMedidas = [
+    {
+      id:1,
+      descricao: 'Unidade',
+      Sigla: 'UNID'
+    },
+    {
+      id:2,
+      descricao: 'Caixa',
+      Sigla: 'CX'
+    },
+    {
+      id:3,
+      descricao: 'Jogo',
+      Sigla: 'JOGO'
+    },
+    {
+      id:4,
+      descricao: 'Litro',
+      Sigla: 'LT'
+    },
+    {
+      id:5,
+      descricao: 'Pacote',
+      Sigla: 'PCT'
+    },
+    {
+      id:6,
+      descricao: 'Peça',
+      Sigla: 'PC'
+    }
+  ]
 
-  public unidadeMedidaDatas: Array<UnidadeMedida> = [];
 
-  public unidadeMedidaSelecionada!: UnidadeMedida [];
-
-
+  unidadeMedidaSelecionada = null
 
   constructor(
     private produtoService: ProdutoService,
-    private unidadeService: UnidadeMedidaService,
-    private grupoProdutoService: GrupoProdutoService,
     private messageService: MessageService,
     private router: Router,
     private formBuilderProduto: FormBuilder,
@@ -143,11 +155,10 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     CODIGO: [null as bigint | null],
     descricao: ['', [Validators.required]],
     observacao: [''],
-    grupoProduto: [null as bigint | string | null],
-    fabricante: ['', [Validators.required]],
+    fabricante: [''],
     codigoOriginal:[''],
     codigoBarras:[''],
-    unidadeVenda: [null as bigint | string | null, [Validators.required]],
+    unidadeVenda: [ null as string |  null , [Validators.required]],
     precoCusto:[null as number | null, [Validators.required]],
     estoque: [null as number | null, [Validators.required]],
     precoVenda: [null as number | null, [Validators.required]],
@@ -166,36 +177,15 @@ export class ProdutoComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.listarProdutos();
-    this.grupoProdutoService.getAllGrupoProduto().subscribe(data => {
-      this.produtoGrupo = data.map(group => ({
-        label: group.descricao,
-        value: group.CODIGO
-      }));
-    });
-
-    this.unidadeService.getAllUnidadeMedida().subscribe(data => {
-      this.unidadeMedida = data.map(unid => ({
-        label:unid.descricao,
-        value:unid.CODIGO
-    }))});
-
     this.cols = [
       { field: 'status', header: 'Status' },
-      { field: 'descricao', header: 'Descricao'},
-      { field: 'grupoProduto', header: 'Grupo Produto' },
-      { field: 'marca', header: 'Marca' },
+      { field: 'descricao', header: 'Descrição'},
+      { field: 'fabricante', header: 'Marca' },
       { field: 'unidadeVenda', header: 'Unidade Venda' },
-      { field: 'quantidadeEstoque', header: 'Quantidade Estoque' },
+      { field: 'estoque', header: 'Quantidade Estoque' },
   ];
-
   this.colunasSelecionadas = this.cols;
   }
-
-   //Usado para carregar informações dos grupos de produto no dropdown
-   produtoGrupo!: any[]
-
-   //Usado para carregar informações das unidades de medida no dropdown
-   unidadeMedida!: any[]
 
    /**
    * Aplica um filtro global na tabela de grupos de usuários.
@@ -298,7 +288,6 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       observacao: null,
       codigoOriginal: null,
       codigoBarras: null,
-      grupoProduto: null,
       fabricante: null,
       unidadeVenda: null,
       precoCusto: null,
@@ -310,12 +299,39 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       versao: null,
       dataCadastro: null,
     });
+
+    this.produtoForm.get('precoVenda')?.valueChanges.subscribe(() => {
+      this.atualizarMargemLucro();
+    });
+
+    this.atualizarMargemLucro();
+
   }
+  verificarCusto(){
+    console.log(this.produtoForm.value.precoCusto)
+  }
+
+  atualizarMargemLucro(){
+    const precoCusto = this.produtoForm.get('precoCusto')?.value as number;
+    const precoVenda = this.produtoForm.get('precoVenda')?.value as number;
+    if(precoCusto != null && precoVenda != null){
+    const newMargemLucro = (precoVenda - precoCusto) / precoCusto * 100;
+    this.produtoForm.patchValue({
+      margemLucro: newMargemLucro
+    })
+    }else{
+    this.produtoForm.patchValue({
+      margemLucro: null
+    })
+  }
+  }
+
 
 
 
   onEditButtonClick(produto: Produto): void {
     const formattedDate = format(new Date(produto.versao), 'dd/MM/yyyy HH:mm:ss');
+
 
     if (produto.status === 'DESATIVADO') {
       this.confirmationService.confirm({
@@ -324,26 +340,30 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       });
     } else {
       this.showForm = true;
-      this.produtoForm.patchValue({
-        CODIGO: produto.CODIGO,
-        descricao: produto.descricao,
-        observacao: produto.observacao,
-        grupoProduto: produto.grupoProduto.descricaoGrupo,
-        fabricante: produto.fabricante,
-        codigoOriginal: produto.codigoOriginal,
-        codigoBarras: produto.codigoBarras,
-        unidadeVenda: produto.unidadeVenda.descricao,
-        precoCusto: produto.precoCusto,
-        estoque: produto.estoque,
-        precoVenda: produto.precoVenda,
-        margemLucro: produto.margemLucro,
-        status: produto.status,
-        empresa: produto.empresa,
-        versao: formattedDate,
-        dataCadastro: produto.dataCadastro,
-      });
+      this.produtoService.getProdutoEspecificoProduto(produto.CODIGO).subscribe(data => {
+        this.produtoForm.patchValue({
+          CODIGO: data.CODIGO,
+          descricao: data.descricao,
+          observacao: data.observacao,
+          unidadeVenda: data.unidadeVenda,
+          fabricante: data.fabricante,
+          codigoOriginal: data.codigoOriginal,
+          codigoBarras: data.codigoBarras,
+          precoCusto: data.precoCusto,
+          estoque: data.estoque,
+          precoVenda: data.precoVenda,
+          margemLucro: data.margemLucro,
+          status: data.status,
+          empresa: data.empresa,
+          versao: formattedDate,
+          dataCadastro: data.dataCadastro,
+        });
+        this.produtoForm.get('precoVenda')?.valueChanges.subscribe(() => {
+          this.atualizarMargemLucro();
+        });
 
-      console.log(this.isEdicao());
+        this.atualizarMargemLucro();
+    })
     }
   }
 
@@ -380,15 +400,14 @@ export class ProdutoComponent implements OnInit, OnDestroy {
 
   carregarProdutoEspecifico(CODIGO: bigint){
 
-    this.produtoService.getProdutoEspecifico(CODIGO).pipe(takeUntil(this.destroy$)).subscribe({
+    this.produtoService.getProdutoEspecificoProduto(CODIGO).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         if (response) {
           this.produtoForm.patchValue({
             CODIGO: response.CODIGO,
             descricao: response.descricao,
-            grupoProduto: response.grupoProduto.descricaoGrupo,
             fabricante: response.fabricante,
-            unidadeVenda: response.unidadeVenda.descricao,
+            unidadeVenda: response.unidadeVenda,
             precoCusto: response.precoCusto,
             estoque: response.estoque,
             precoVenda: response.precoVenda,
@@ -435,7 +454,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
    */
   adicionarOuEditarProduto(): void {
     if (this.isEdicao()) {
-      this.editarProduto();
+      this.editarProduto()
     } else {
       this.adicionarProduto();
     }
@@ -450,11 +469,10 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       const requestCreateproduto: AdicionarProduto = {
         descricao: this.produtoForm.value.descricao as string,
         observacao: this.produtoForm.value.observacao as string,
-        grupoProduto:this.produtoForm.value.grupoProduto as bigint | string,
         fabricante: this.produtoForm.value.fabricante as string,
         codigoOriginal: this.produtoForm.value.codigoOriginal as string,
         codigoBarras: this.produtoForm.value.codigoBarras as string,
-        unidadeVenda: JSON.parse(JSON.stringify(this.produtoForm.value.unidadeVenda)).value as bigint,
+        unidadeVenda: this.produtoForm.value.unidadeVenda as string,
         precoCusto: this.produtoForm.value.precoCusto as number,
         estoque: this.produtoForm.value.estoque as number,
         precoVenda: this.produtoForm.value.precoVenda as number,
@@ -515,11 +533,10 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         CODIGO: this.produtoForm.value.CODIGO as bigint,
         descricao: this.produtoForm.value.descricao as string,
         observacao: this.produtoForm.value.observacao as string,
-        grupoProduto: this.produtoForm.value.grupoProduto as bigint,
         fabricante: this.produtoForm.value.fabricante as string,
         codigoOriginal: this.produtoForm.value.codigoOriginal as string,
         codigoBarras: this.produtoForm.value.codigoBarras as string,
-        unidadeVenda: this.produtoForm.value.unidadeVenda as bigint,
+        unidadeVenda: this.produtoForm.value.unidadeVenda as string,
         precoCusto: this.produtoForm.value.precoCusto as number,
         estoque: this.produtoForm.value.estoque as number,
         precoVenda: this.produtoForm.value.precoVenda as number,
@@ -615,7 +632,6 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       });
     }
   }
-
 
   /**
    * Manipulador de eventos OnDestroy. Completa o subject de destruição.

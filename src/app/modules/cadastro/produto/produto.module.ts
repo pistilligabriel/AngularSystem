@@ -8,7 +8,6 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { CookieService } from 'ngx-cookie-service';
 import { produtoRoute } from './produto.routing';
 import { ProdutoComponent } from './produto.component';
-import { GrupoProdutoComponent } from '../grupo-produto/page/grupo-produto.component';
 
 
 
@@ -22,10 +21,9 @@ import { GrupoProdutoComponent } from '../grupo-produto/page/grupo-produto.compo
     RouterModule.forChild(produtoRoute)
   ],
   declarations: [
-    ProdutoComponent
+    ProdutoComponent,
   ],
   providers: [
-    GrupoProdutoComponent,
     MessageService,
     CookieService,
     ConfirmationService

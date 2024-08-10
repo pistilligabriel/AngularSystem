@@ -28,8 +28,12 @@ constructor(
   return this.http.get<Array<Produto>>(`${this.API_URL}/produtos`, this.httpOptions);
  }
 
- getProdutoEspecifico(CODIGO: bigint):Observable<Produto>{
-  return this.http.get<Produto>(`${this.API_URL}/produtos/${CODIGO}`, this.httpOptions);
+ getProdutoEspecifico(codigo: bigint):Observable<Produto>{
+  return this.http.get<Produto>(`${this.API_URL}/produtos/${codigo}`, this.httpOptions);
+ }
+
+ getProdutoEspecificoProduto(codigo: bigint):Observable<Produto>{
+  return this.http.get<Produto>(`${this.API_URL}/produtos/${codigo}`, this.httpOptions);
  }
 
  adicionarProduto(requestDatas: AdicionarProduto):Observable<Array<Produto>>{

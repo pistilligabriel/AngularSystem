@@ -177,12 +177,11 @@ export class ClienteComponent implements OnInit {
     this.listarClientes();
 
     this.cols = [
-      { field: 'CODIGO', header: 'Código'},
+      { field: 'status', header: 'Status'},
       { field: 'nome', header: 'Nome' },
       { field: 'sobrenome', header: 'Sobrenome' },
       { field: 'telefone', header: 'Telefone'},
       { field: 'email', header: 'E-mail'},
-      { field: 'status', header: 'Status'},
     ];
 
     this.colunasSelecionadas = this.cols;

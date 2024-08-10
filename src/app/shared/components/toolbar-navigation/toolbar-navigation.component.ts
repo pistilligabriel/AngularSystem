@@ -40,27 +40,6 @@ export class ToolbarNavigationComponent implements OnInit {
             label: 'Produto',
             routerLink: ['/produto'],
           },
-          {
-            label: 'Unidade de Medida',
-            routerLink: ['/unidade-medida'],
-          },
-          {
-            label: 'Grupo',
-            items: [
-              {
-                label: 'Intgrante',
-                routerLink: ['/registration/group/member'],
-              },
-              {
-                label: 'Produto',
-                routerLink: ['/grupo-produto'],
-              },
-              {
-                label: 'Usuário',
-                routerLink: ['/registration/group/user'],
-              },
-            ],
-          },
         ],
       },
       {

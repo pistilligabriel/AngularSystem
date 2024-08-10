@@ -63,14 +63,14 @@
                     >
                       Adicionar
                     </button>
-                    <button
+                    <!-- <button
                       pButton
                       pRipple
                       icon="pi pi-ban"
                       class="p-button-danger"
                       (click)="disableSelectedUsers()"
                       [disabled]="!userSelected || !userSelected.length"
-                    ></button>
+                    ></button> -->
                   </div>
 
                   <div class="flex justify-content-center mr-5">
@@ -139,10 +139,10 @@
 
               <ng-template pTemplate="header" let-columns>
                 <tr>
-                  <th style="width: 3rem"></th>
-                  <th style="width: 4rem">
+                  <th style="width: 3rem">Editar/Desativar</th>
+                  <!-- <th style="width: 4rem">
                     <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-                  </th>
+                  </th> -->
                   <th
                     pResizableColumn
                     pSortableColumn="CODIGO"
@@ -228,9 +228,9 @@
                       ></button>
                     </div>
                   </td>
-                  <td>
+                  <!-- <td>
                     <p-tableCheckbox [value]="user"></p-tableCheckbox>
-                  </td>
+                  </td> -->
                   <td>{{ user.CODIGO }}</td>
                   <ng-container *ngFor="let col of columns">
                     <td *ngIf="col.field !== 'status'; else statusColumn">
@@ -249,7 +249,7 @@
               </ng-template>
 
               <ng-template pTemplate="summary">
-                <div class="flex align-items-center justify-content-between">
+                <div class="text-center">
                   Total de {{ userDatas ? userDatas.length : 0 }} Usuários
                   Cadastrados.
                 </div>

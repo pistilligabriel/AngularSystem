@@ -12,7 +12,6 @@ import { PageNotFoundComponent } from './modules/page-not-found/page-not-found.c
 import { CookieService } from 'ngx-cookie-service';
 import { FooterComponent } from './modules/footer/footer.component';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { GrupoProdutoComponent } from './modules/cadastro/grupo-produto/page/grupo-produto.component';
 
 
 @NgModule({
